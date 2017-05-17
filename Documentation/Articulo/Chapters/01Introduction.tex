@@ -1,0 +1,27 @@
+\section{Introducción}
+
+\subsection{Potencia en unidades de procesamiento gráfico, procesamiento paralelo}
+
+Durante la última década, las \acp{GPU} han sufrido una gran evolución ofreciendo una capacidad de
+procesamiento muy superior a las \acp{CPU}. Esta superioridad esta basada en la peculiaridad de las
+operaciones de procesamiento de imágenes, que se consiste, en muchos
+casos, en realizar la misma operación para cada uno de los puntos de una imagen. 
+
+\newFig{arquitectura}{Diferencias arquitectónicas entre una \ac{CPU} y una \ac{GPU}}
+
+Aprovechando esta características, las \acp{GPU} basan su capacidad de computo en la utilización de
+gran cantidad de núcleos especializados que trabajan en paralelo. La arquitectura de estos núcleos
+es mucho más sencilla que las que tiene una \acp{CPU} como muestra la \refFig{arquitectura}. Esta
+arquitectura, por tanto, no es apta para programación general.
+
+\subsection{Unidades de procesamiento gráfico y programación general}
+
+La mejora de prestaciones de las \acp{GPU} ha aumentando el interés para el uso de
+estos dispositivos en otro tipo de programas. Este hecho ha producido la aparición de
+nuevos lenguajes de programación como CUDA y OpenCL que faciliten el uso de los dispositivos. 
+
+Actualmente están apareciendo implementaciones de algoritmos adaptados para su ejecución paralela
+que aprovechen la potencia de estos dispositivos gráficos. Estos algoritmos se caracterizan por
+ser altamente paralelizables pudiendo aprovechar al máximo la potencia de calcula de las \acp{GPU}.
+
+

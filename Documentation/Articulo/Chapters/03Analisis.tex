@@ -1,0 +1,174 @@
+\section{Análisis\labelSec{analisis}}
+
+El proceso de decisión de \ac{BGP} representa un punto crítico del protocolo al ser el punto donde
+se decide que rutas son añadidas a la tabla de rutas del encaminador y si estás deben ser
+anunciadas. El proceso de
+decisión es directamente responsable de que las redes sean accesibles por todos de nodos del
+sistema.
+
+Para comprender el protocolo se ha realizado un conjunto de pruebas en un entorno de simulación.
+Esto nos ha servido para obtener resultados que posteriormente se han analizado buscando
+posibles puntos vulnerables en el proceso de decisión.
+
+\subsection{Entorno de simulación}
+
+Para analizar el protocolo se ha optado por un entorno de simulación en vez de un entorno de
+emulación, esto nos ha permitido poder realizar pruebas en escenarios de cualquier tipo de
+dimensión y analizarlos de una forma sencilla y eficiente.  
+
+El simulador con el que se han realizado las pruebas es JSIM \cite{JSIM1, JSIM2} en concreto la
+adaptación del protocolo para el soporte del protocolo \ac{BGP} desarrollado en mi proyecto de
+fin de carrera\cite{PROYECTO_PACO}. 
+
+\subsection{Topologías analizados y resultados de la simulación}
+
+Las topologías analizadas se han centrado en dos efectos negativos, \angl{wedgies} \cite{RFC4264,
+PROYECTO_PACO} y oscilaciones \cite{PROYECTO_PACO}. También se ha reproducido el problema del caso
+de Pakistán \cite{YOUTUBE_HIJACKING} mencionado en la introducción. 
+
+\subsubsection{Wedgie 3/4\labelSec{wedgie3/4}}
+
+\newFig{wedgie3-4-1}{\angl{Wedgie 3/4}. Situación inicial}
+
+\newFig{wedgie3-4-2}{\angl{Wedgie 3/4}. Caída del enlace principal (\angl{Primary link})}
+
+\newFig{wedgie3-4-3}{\angl{Wedgie 3/4}. Recuperación del enlace principal }
+
+\newFig{wedgie3-4-4}{\angl{Wedgie 3/4}. Caída del enlace de respaldo (\angl{Backup link})}
+
+Las \angl{wedgies} suceden cuando se alcanzan estados del sistema no deseados después de un
+suceso que afecta a la red, como por ejemplo una caída de algún nodo, y a causa de
+configuraciones específicas en algunos punto de la red \ac{BGP}. 
+
+La \angl{wedgie 3/4} sucede cuando, al producirse la caída de un enlace o nodo, se pierde una ruta
+que atravesaba dicho punto y se establece una ruta alternativa por otro punto de la red.
+Cuando se restablece la ruta principal, el estado deseable es que se restablezca la ruta original
+sin embargo esto no ocurre debido a que alguno de los nodos de la red bloquea el anuncio de
+dicha red. Para restablecer por completo la red principal es necesario realizar una desconexión en
+un punto que obliga al nodo que bloquea el anuncio de la ruta principal a publicarlo y de esta
+manera restablecerla en el resto de nodos. 
+
+El escenario descrito en el \refApe{A1} reproduce esta situación. En el momento inicial la ruta
+principal a los contenidos del \cod{AS - 1204} dirige el tráfico a través del enlace principal
+(\angl{Primary link}), \refFig{wedgie3-4-1}. Tras la caía del enlace principal el acceso
+a las redes se produce por el enlace de respaldo (\angl{Backup link}), \refFig{wedgie3-4-2}. Esta
+situación se mantiene aunque se restablezca el enlace principal, \refFig{wedgie3-4-3}. Es necesario
+forzar una caída del enlace de respaldo para restablecer el estado original, \refFig{wedgie3-4-4}. 
+
+\subsubsection{Full Wedgie\labelSec{fullwedgie}}
+
+\newFig{fullwedgie-1}{\angl{Full Wedgie}. Situación inicial}
+
+\newFig{fullwedgie-2}{\angl{Full Wedgie}. Caída del enlace principal (\angl{Primary link})}
+
+\newFig{fullwedgie-3}{\angl{Full Wedgie}. Recuperación del enlace principal y Caída del enlace de
+respaldo(\angl{Backup link})}
+
+\newFig{fullwedgie-4}{\angl{Full Wedgie}. Caída del enlace de respaldo secundario (\angl{Secondary
+Backup link})}
+
+El caso más general de \angl{wedgie} son las denominadas \angl{full wedgies}. En este caso existe
+más de un enlace de respaldo y para recuperar la situación inicial todos los enlaces de
+respaldo deben caer. 
+
+El \refApe{A2} muestra la configuración de un escenario que sufre \angl{full wedgie}. Al igual que
+el escenario anterior, tras el estado inicial, \refFig{fullwedgie-1}, la simulación sufre
+una caía del enlace principal (\angl{Primary link}), \refFig{fullwedgie-2}, que produce que el
+acceso a las redes se produzca a través de uno de los enlaces de respaldo, \refFig{fullwedgie-3}.
+Esta situación no vuelve al estado inicial hasta que ambos enlaces de respaldo se encuentran
+caídos, \refFig{fullwedgie-4}. 
+
+\subsubsection{Oscilaciones\labelSec{oscilaciones}}
+
+ \newFigTwoXTree{ciclar1}{Escenario que
+cicla}{ciclar1-1}{ciclar1-2}{ciclar1-3}{ciclar1-4}{ciclar1-5}{ciclar1-6}
+
+Una red \ac{BGP} oscila cuando el sistema alterna entre un número finito de estados de forma
+cíclica. Esta oscilación puede converger a uno de estos estados de manera no determinista o
+permanecer indefinidamente oscilando. 
+
+Para entender la oscilación se han simulado dos escenarios básicos que sufren oscilación,
+\refApe{A3} y \refApe{A4}. Gracias a estos escenarios puede verse la causa de la oscilación. 
+
+El primero de estos escenarios, \refApe{A3}, muestra un sistema de tres nodos. Los nodos que causan
+la oscilación son los nodos B y C. Ambos establecen el atributo \angl{local preference} al valor 90
+para las rutas anunciadas desde el nodo A. La simulación comienza sin conexión entre los nodos B y
+C, \refFig{ciclar1-1}. Al iniciarse la comunicación entre estos nodos se realiza el anuncio de la
+ruta disponible en su tabla de rutas,
+\refFig{ciclar1-2}. Ambos nodos reciben el anuncio y lo prefieren frente a la ruta disponible en su
+tabla de rutas, el publicado por el nodo A, debido al valor del atributo \angl{local preference},
+\refFig{ciclar1-3}. Esto produce que anuncie la retirada de la ruta que había sido anunciada en un
+primer momento, \refFig{ciclar1-4}. Cuando estos nodos reciben el anuncio de la retirada de la ruta
+anunciada por B o C vuelven a restaurar la ruta a través del nodo A y a anunciarla a sus nodos
+vecinos, \refFig{ciclar1-5}, y volviendo a la situación inicial, \refFig{ciclar1-2}. Este escenario
+puede converger a dos estados,
+\refFig{ciclar1-6}, para que esto ocurra, uno de los dos nodos debe tener la información de las dos
+rutas antes de realizar su anuncio. 
+
+El segundo escenario, \refApe{A4}, muestra una topología similar. Este escenario esta compuesto
+por dos nodos que oscilan, B1 y C, y un nodo intermedio, B2. En este caso aunque, el
+sistema sufre oscilaciones, se ha observado cómo la simulación alcanza un estado estable con mayor
+facilidad que en la simulación descrita en el \refApe{A3}. 
+
+El último escenario, \refApe{A5}, contempla una situación más compleja, con gran cantidad de
+sistemas autónomos y nodos dentro de cada sistema. Esta simulación puede verse cómo, al modificar
+determinados atributos, pueden producirse oscilaciones en otros puntos de la topología.
+
+Analizando los resultados de la última simulación puede observarse que, aunque las oscilaciones
+ocurren frecuentemente en este tipo de sistemas, éstas suelen estabilizarse tras un corto periodo
+de tiempo y pueden ignorarse. Sin embargo, en determinadas ocasiones puede ocurrir que el tiempo
+que tarda en estabilizarse un sistema que oscila sea mayor o incluso no consiga hacerlo. Si
+esto sucede, las consecuencias dejan de ser triviales y, durante el tiempo de oscilación, se
+pierde el acceso estable a las redes implicadas. 
+
+Otro efecto negativo que produce la oscilación es que el sistema no converge, ya que existen varios
+estados finales distintos.
+
+Por último, la naturaleza de \ac{BGP} hace que las oscilaciones no pueda ser evitadas y
+suceden cuando el grafo de costes de la red \ac{BGP} no es estrictamente creciente. Sin embargo,
+introducir retardos aleatorios entre los anuncios, puede mitigar los efectos de las oscilaciones.
+
+
+\subsubsection{Suplantación de redes: Caso Pakistán\labelSec{pakistan}}
+
+\newFig{pakistan1}{Caminos usados por los nodos antes del falso anuncio.}
+
+\newFig{pakistan2}{Caminos usados por los nodos después del falso anuncio.}
+
+El caso ocurrido en Pakistán en Marzo de 2008\cite{YOUTUBE_HIJACKING} tiene su raíz en un problema
+de concepto del diseño del protocolo. En este caso los \acp{ISP} de este país anunciaron
+deliberadamente información de encaminamiento falsa sobre una red. Al realizar esto, Pakistán
+buscaba que los \acp{ISP} vetaran el acceso al portal youtube a sus clientes. La
+repercusión es que este anuncio se propagó a sus redes vecinas provocando que estas perdieran el
+acceso a la red anunciada. 
+
+El escenario planteado en el \refApe{A6} muestra una reproducción a menor escala del suceso
+ocurrido en Pakistán. En esta topología existe un nodo, \cod{ROUTER2\_4}, que realiza un anuncio
+falso de la red \cod{NET 1}. En la situación inicial, \refFig{pakistan1}, cuando el nodo no se
+comunica con el resto de la red, todos los \ac{AS} tienen información correcta de la ruta a\cod{NET
+1}. Cuando el encaminador se une a la red \ac{BGP} y realiza su anuncio, este anuncio se propaga por
+varias de las redes del sistema. Para esta topología, y debido a la configuración de atributos, los
+\acp{AS} que se ven afectados son el \cod{AS - 1001}, porque representa el camino más corto hasta la
+red anunciada, y el \cod{AS - 43020} por su configuración de atributos, ya que prefieren las rutas
+anunciadas desde \cod{AS - 1001}, este \ac{AS} en ningún momento cambia su información sobre la
+ruta, ya que para ellos la ruta sigue siendo a través del \cod{AS - 1001}. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

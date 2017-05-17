@@ -1,0 +1,117 @@
+\section{Paralelización de Shellsort, Análisis}
+
+Los algoritmos con mayor nivel de paralelización ya se  encuentra n implementado s,  po r lo que
+encontrar un algoritmo que pueda implementarse de manera eficiente de forma paralela
+resulta complejo.
+
+Al buscar un algoritmo para su paralelización se ha tenido en cuenta varias opciones, estudiando,
+entre los algoritmos de busqueda y ordenación, aquellos que no poseen todavía una implementaciones
+para OpenCL o CUDA. Entre estos algoritmos se ha elegido Shellsort debido al aparente caracter
+paralelo de sus operaciones de comparación entre elementos deslocalizados en su estructura de
+datos. 
+
+\subsection{Shellsort}
+
+El algoritmo de ordenamiento Shellsort recibe su nombre en honor a su inventor Donald Shell. Su
+implementación original, requiere $O(n^2)$ comparaciones e intercambios en el peor caso. El
+algoritmo ha sido mejorado en diferentes implementaciones obteniendo rendimientos de $O(n log^2
+(n))$ y $O(n^{3/4})$ en el peor caso. 
+
+El Shell sort es una generalización del ordenamiento por inserción, teniendo en cuenta dos
+observaciones:
+\begin{enumerate}
+ \item El ordenamiento por inserción es eficiente si la entrada está ``casi ordenada''.
+ \item El ordenamiento por inserción es ineficiente, en general, porque mueve los valores sólo una
+posición cada vez.
+\end{enumerate}
+
+El algoritmo Shellsort mejora el ordenamiento por inserción comparando elementos separados por un
+espacio de varias posiciones. Esto permite que un elemento haga ``pasos más grandes'' hacia su
+posición esperada. Los pasos múltiples sobre los datos se hacen con tamaños de espacio cada vez más
+pequeños. El último paso del Shellsort es un simple ordenamiento por inserción, pero para entonces,
+ya está garantizado que los datos del vector están casi ordenados.
+
+El rendimiento del algoritmo depende directamente de la separación entre los elementos comparados.
+Los mejores resultados hasta la fecha se obtienen usando los incrementos de Sedgewick con un coste
+de $O(n log^2 (n))$. 
+
+\subsection{Requisitos de paralelización}
+
+La arquitectura particular de los dispositivos gráficos hacen que no todos los algoritmos sean
+elegibles para su paralelización. Estos requisitos indican cuales son los algoritmos que mejor se
+adaptan a la paralelización. 
+
+\subsubsection{Operaciones}
+
+Para que un algoritmo pueda alcanzar un buen rendimiento paralelo es
+necesario que existan operaciones que se ejecuten muchas veces con diferentes datos y que la
+dependencia entre la misma operación con distintos datos no sea muy fuerte. Un ejemplo de esto es
+incrementar en uno el valor de un grupo de números. Esta operación no posee dependencias entre su
+ejecución con distintos datos y es repetida tantas veces como numero de datos existan.  
+
+\subsubsection{Conjunto de datos} 
+
+La paralelización de un algoritmo se basa en la repetición de una
+varias operaciones sobre un conjunto de datos. Para que sea interesante ejecutar el algoritmo en
+un dispositivo gráfico, debe ejecutarse sobre un grupo de datos lo suficientemente grande. 
+
+\subsubsection{Representación de los datos} 
+Los dispositivos gráficos están optimizados para tratar con imágenes y vídeos. Si los datos del
+algoritmo están distribuidos en estructuras que se asemejen a las utilizadas por imágenes y vídeos,
+el acceso a los mismos resultará mucho más sencillo. Estas estructuras son principalmente matrices
+de varias dimensiones. 
+
+
+Estos requisitos marcan los resultados positivos que se pueden obtener al paralelizar un algoritmo
+concreto
+
+\subsection{Análisis y valoración}
+
+El análisis de los requisitos en el algoritmo Shellsort se valora cada uno de los requisitos de
+paralelización:
+
+\subsubsection{Operaciones}
+
+El algoritmo se basa en el algoritmo de inserción, este no se caracteriza por ser un algoritmo
+paralelizable, sin embargo Shellsort se caracteriza por realizar comparaciones entre subgrupos de
+elementos. Los subconjunto de elementos son más numerosos y con menos elementos al principio del
+algoritmo. En la última etapa del algoritmo, existe un solo subconjunto con todos los elementos. 
+
+Los primeros pasos de Shellsort, al existir subconjuntos independientes de datos a comparar, la
+paralelización es sencilla, sin embargo en los últimos pasos. Al existir pocos subconjuntos es
+necesario buscar una forma de paralelizar de forma eficiente el algoritmo de inserción para listas
+de elementos ``casi ordenadas''. 
+
+\subsubsection{Conjunto de datos}
+
+Al ser un algoritmo de ordenación, el conjunto de datos es lo suficientemente grande para realizar
+una implementación paralela del algoritmo. 
+
+\subsubsection{Representación de los datos}
+
+La representación de los datos en una primera instancia puede favorecer una implementación
+paralela. Los datos se ordenan en una lista y los subconjuntos de datos se encuentran a distancias
+fijas. 
+
+Sin embargo hay características que van a afectar negativamente a este aspecto. El primero es que
+el tamaño de los subgrupos va a ser muy diferente en los diferentes pasos del algoritmo. Esto va a
+producir que la implementación tenga que adaptarse a este cambio. 
+
+Otro aspecto que puede afectar negativamente al algoritmo es que los elementos de cada cada subgrupo
+tiene sus elementos muy deslocalizados. 
+
+
+\subsection{Conclusión del análisis}
+
+Shellsort, pese a poseer características que aparentemente lo hacen paralelizable, tiene
+aspectos mermarán la implementación paralela que se realice y, por tanto, la implementación
+no se beneficiara de la paralelización tanto como otros algoritmos. Esta puede ser la causa por la
+cual no exista aún una implementación de Shellsort para OpenCL o CUDA. 
+
+
+
+
+
+
+
+

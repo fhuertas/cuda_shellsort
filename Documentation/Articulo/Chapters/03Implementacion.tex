@@ -1,0 +1,160 @@
+\section{Paralelización de Shellsort, Implementación }
+
+La implementación paralela de Shellsort se ha realizado por fases. Cada una de las fases se ha
+centrado en un aspecto de la paralelización. También se ha hecho una implementación lineal para
+\ac{CPU} y otra para \ac{GPU} para comprar los resultados. 
+
+El código de la \ac{GPU} se ha realizado en OpenCL. Se ha utilizado C para escribir el código que
+prepara el contexto OpenCL y lanza los hilos que se ejecutan en la \ac{GPU}. La compilación se ha
+hecho en Linux. Los incrementos utilizados en el algoritmo son los incrementos de Sedgewick.
+
+Por último, no todas las implementaciones ordenan por completo el vector de elementos.
+
+\subsection{Implementación lineal base, Shellsort 0}
+
+Esta implementación se ha utilizado como base para las siguientes implementaciones. Aunque se
+ejecute en la \ac{GPU} el código se ejecuta de manera lineal.
+
+El código que se ejecuta en la \ac{CPU} es el encargado para prepara el contexto para la ejecución
+del código OpenCL. También se encarga de calcular los distintos incrementos. 
+
+El código para que se ejecuta en la \ac{GPU} es el encargado de ordenar el subconjunto de elementos
+del vector que recibe. Los parámetros necesarios para realizar la llamada son: 
+
+\begin{itemize}
+ \item El propio vector de elementos. En dicho vector están todos los elementos del vector ({\em
+vector})
+ \item El tamaño del vector ({\em size}) 
+ \item El primer elemento que hay que ordenar ({\em offset}) 
+ \item La separación entre los elementos que hay que ordenar ({\em incremento}) 
+\end{itemize}
+
+La ejecución del código OpenCL se realiza de manera secuencial para cada incremento y offset y se
+realiza en una dimensión y un único hilo por dimensión. 
+
+Esta implementación ordena los elementos del vector por completo
+
+\subsection{Paralelización de los incrementos, Shellsort A}
+
+Este nivel de paralelización es el más fácil de realizar. A la hora de lanzar los hilos en la
+\ac{GPU} se lanzan simultáneamente un hilo por cada subconjunto de elementos. Por cada fase del
+algoritmo se lanzan n hilos donde n es el valor del incremento de Sedgewick para esa fase, en
+concreto las llamadas se realizan en una única dimensión de n elementos y no existen comunicación
+entre los hilos y por lo tanto cada hilo se ejecuta en un grupo distinto. Las fases se siguen
+ejecutando de manera secuencial. 
+
+En la implementación OpenCL se sustituye el parametro offset que indicaba el subconjunto que se
+ordenaba por el id global del hilo en la única dimensión existente.
+
+Esta paralelización, para las primeras fases del algoritmo obtiene muy buenos resultados, sin
+embargo, en las ultimas fases el algoritmo no obtiene grandes resultados ya que el numero de hilos
+lanzados es muy pequeño. 
+
+Tomando los incrementos de Sedgewick (1, 5, 19, 41, 109, ...), para una lista de 100 elementos
+cada fase posee las siguientes características: 
+\begin{itemize}
+ \item 1º: 41 hilos, 2-3 elementos ordenados por hilo. 
+ \item 2º: 19 hilos, 5-6 elementos ordenados por hilo. 
+ \item 3º: 5 hilos, 20 elementos ordenados por hilo
+ \item 4º: 1 hilos, 100 elementos ordenados por hilo
+\end{itemize}
+
+Esta implementación ordena los elementos del vector por completo. 
+
+\subsection{Paralelización del algoritmo de inserción, Shellsort B}
+
+Con la base del apartado anterior se ha buscado una forma de mejorar el rendimiento cuando el
+número de subconjunto es pequeño. Para realizar esto se han lanzado un número variable de hilos por
+subconjunto que son los encargados de ordenar un pequeño grupo de elementos pertenecientes a dicho
+subconjunto. 
+
+La implementación lanza los hilos en dos dimensiones: 
+\begin{itemize}
+ \item La primera representa el subconjunto que ordena cada hilo. 
+ \item La segunda representa que parte del subconjunto ordena. 
+\end{itemize}
+
+En esta implementación no es necesario clasificar los hilos por grupos, sin embargo, por claridad y
+se han agrupado los hilos en grupos que ordenan el mismo subconjunto de elementos del vector.
+De igual manera es aconsejable determinar un número máximo de hilos por subconjunto. este valor
+depende del número de elementos del subconjunto y nunca puede superar el tamaño máximo por
+dimensión por grupo de trabajo. 
+
+Tomando de nuevo los incrementos de Sedgewick (1, 5, 19, 41, 109, ...), para una lista de 100
+elementos y estableciendo como máximo de hilos por grupo una cuarta parte de los elementos por
+grupo, las fases del algoritmo tienen las siguientes características: 
+
+\begin{itemize}
+ \item 1º: 41x1 hilos (41 en total), 2-3 elementos ordenados por hilo. 
+ \item 2º: 19x1 hilos (19 en total), 4-5 elementos ordenados por hilo.
+ \item 3º: 5x5 hilos (25 en total),4 elementos ordenados por hilo.
+ \item 4º: 1x25 hilos (25 hilos en total), 4 elementos ordenados por hilo.
+\end{itemize}
+
+Este algoritmo mejora notablemente el rendimiento con respecto a la versión anterior. Sin embargo
+esta implementación no ordena el por completo el vector de elementos, ya que no existe comunicación
+entre los hilos que ordenan el mismo subconjunto de elementos. 
+
+
+\subsection{Variante de Shellsort, Shellsort C }
+
+Esta versión únicamente cambia el orden en que se ejecuta el algoritmo de inserción. En el apartado
+anterior se ejecuta del elemento menor al mayor. En este se ejecuta del mayor al menor. Al obtener
+resultados similares esta versión se ha descontinuado. 
+
+\subsection{Corrección del algoritmo de inserción, Shellsort D}
+
+Esta corrección busca que el algoritmo planteado en Shellsort B ordene los elementos
+
+La paralización Shellsort B deja los elementos ordenados por hilo. Para ordenar todos los elementos
+de un subconjunto se comparan el elemento mayor y menor de los hilos consecutivos. En caso de que
+no estén ordenados se intercambian los valores y comienza de nuevo a ordenarse cada hilo
+internamente. 
+
+Aparentemente esta forma de ordenar no es muy eficiente, sin embargo, se ha optado por esta
+versión porque los elementos de cada fase se encuentran más cerca de su posición real y, por lo
+tanto no, habrá hacer hacer muchas repeticiones. 
+
+Se ha planteado realizar una modificación de realizando más de un cambio de elementos entre hilos
+por pasada. Al final se descartó por no conseguir resultados óptimos.  
+
+Otra mejora que se planteó en este apartado es desactivar hilos que, aparentemente no necesiten
+volver a ordenar, sin embargo, al realizar un cambio en cualquiera de los elementos, cualquier hilo
+es sensible de necesitar reordenar sus elementos. 
+
+Por último añadir que se han incluido optimizaciones a la hora de traer los elementos de memoria.
+Estas mejoras intentan hacer el mínimo número de lecturas y escrituras en memoria global del
+dispositivo. 
+
+\subsection{Uso de memoria local, Shellsort E y F}
+
+Un de los problemas que suele tener las implementaciones de algoritmos para OpenCL o CUDA es la
+gran cantidad de tiempo que se pierde accediendo a memoria general. Como se podrá ver en la sección
+siguiente, el numero de accesos a memoria en la implementación Shellsort D puede llegar a ser muy
+alta. Para evitar esto se ha intentado mover el vector de memoria general a memoria privada. 
+
+El primer problema que se ha tenido que solventar a sido que en las últimas fases, que generalmente
+son las más lentas, tienen una cantidad tan grande de datos que es imposible almacenar en memoria
+toda el vector. Para solventar este problema se ha hecho que cada hilo trabaje en un grupo
+distinto. La pega de esto es que ahora todos los hilos tienen que esperarse para comprobar si ha
+habido cambios en su subconjunto de datos. Cuando un hilo ha terminado de ordenar sus datos realiza
+la copia en memoria general del mayor y menor de sus datos. Una vez hecho esto se comprueban los
+datos entre hilos para saber si hay que hacer intercambio. 
+
+Estas implementaciones, sin embargo, no ha mejorado nada el rendimiento con respecto a las
+versiones anteriores. Los principales problemas que se han encontrado es que al variar tanto las
+dimensiones tan variables con las que se trabaja. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+

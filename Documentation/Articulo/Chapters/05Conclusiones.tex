@@ -1,0 +1,23 @@
+\section{Conclusión}
+
+
+
+Los datos obtenidos en las ejecuciones de las diferentes implementaciones, sin ser concluyentes,
+debido a la potencia de los dispositivos gráficos, hacen pensar las implementaciones paralelas
+de este algoritmo pueden mejorar los tiempos de ordenación con respecto a la ejecución del mismo
+en una CPU. Sin embargo esta mejora no es tan significativa como los resultados obtenidos con otros
+algoritmos. 
+
+Entre las causas se encuentra la deslocalización de los datos que gestiona cada hilo y la
+diferencia de cantidad de datos que manejan cada subconjunto en las diferentes fases, sobre todo la
+primera y la última. 
+
+También se puede observar como, el algoritmo ofrece mejores resultados cuantos más datos gestiona. 
+
+\section{Trabajo futuro} 
+
+Entre las mejoras que se pueden realizar a la implementación paralela plateada se encuentra realizar
+una implementación dependiente de los incrementos y diferentes implementaciones para cada
+incremento. Al existir pocas fases, para un millón de elementos, 17 fases, la ganancia que se
+obtendrá con esto, sera mucho mayor. Además, esta implementación permitirá que al copia en local de
+los datos que cada hilo ordena, sea mucho más eficiente. 

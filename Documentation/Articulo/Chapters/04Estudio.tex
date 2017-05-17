@@ -1,0 +1,407 @@
+\section{Estudio}
+
+Las pruebas que se han hecho para comprobar las distintas implementaciones se han basado en pruebas
+empíricas obtenidas al ejecutar el código en diferentes equipos. 
+
+  Para comprobar
+
+\subsection{Hardware utilizado}
+
+Todas las implementaciones se han probado en al menos un equipo. Adicionalmente, las mejores
+implementaciones se han probado en dos equipos más. Las especificaciones de los equipos se
+encuentran en el apéndice A. 
+
+Una de las principales pegas de las pruebas realizadas es la imposibilidad de probarlo en
+dispositivos gráficos de alto rendimiento. Las pruebas se han hecho principalmente en el Equipo A.
+El dispositivo gráfico de este equipo solo dispone de 16 núcleos CUDA cuando los dispositivos
+actuales de gama alta disponen de miles de núcleos. Por otro lado el procesador es, con respecto a
+la tarjeta gráfica, más avanzado. 
+
+\subsection{Varios tiempos un solo equipo }
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|l | c | c| c | }
+\hline
+Elementos x& & & \\ 
+repeticiones & Lineal & Imp-0 & Imp-A \\ 
+\hline
+100 x 1       & 0.00  & 0.01  & 0.00  \\ 
+1000 x 1      & 0.00  & 0.63  & 0.15  \\ 
+10 x 100      & 0.00  & 0.14  & 0.04  \\ 
+100 x 100     & 0.00  & 18.25 & 0.24  \\ 
+1000 x 100    & 0.02  & ----- & 14.56 \\ 
+10000 x 100   & 0.30  & ----- & ----- \\ 
+100000 x 100  & 3.76  & ----- & ----- \\ 
+400000 x 100  & 19.08 & ----- & ----- \\ 
+1000000 x 100 & 55.74 & ----- & ----- \\ 
+\hline
+\hline
+Elementos x& & & \\ 
+repeticiones  & Imp-B & Imp-D & Imp-E\\
+\hline
+100 x 1       & 0.00   & 0.00   & 0.00 \\ 
+1000 x 1      & 0.00   & 0.00   & 0.00\\ 
+10 x 100      & 0.04   & 0.07   & 0.04\\ 
+100 x 100     & 0.08   & 0.14   & 0.08\\ 
+1000 x 100    & 0.10   & 0.34   & 0.17\\ 
+10000 x 100   & 0.73   & 1.31   & 1.57\\ 
+100000 x 100  & 10.78  & 15.08  & 21.32\\ 
+400000 x 100  & 58.49  & 69.07  & 95.02\\ 
+1000000 x 100 & 183.98 & 180.93 & -----\\ 
+\hline
+\end{tabular}
+\caption{Tiempos de ordenación en el equipo A}
+\labelTab{TiemposGruposA}
+\end{center}
+\end{table}
+
+Las pruebas de rendimiento de las diferentes implementaciones se han realizado en la equipo A. La
+\refTab{TiemposGruposA} muestra los resultados de ejecutar el algoritmo con distintos números de
+trupo para cada una de las implementaciones. Para que los datos sean más fiables se han realizado
+más de una repetición por configuración. 
+
+Entre los datos obtenidos hay que destacar que el algoritmo más rápido es el ejecutado en la CPU.
+Una de las causas es la poca potencia del dispositivo gráfico con respecto de la CPU. 
+
+Analizando los tiempos paralelos, lo primero que se puede observar son los resultados es como la
+implementación 0, la cual realiza la ejecución del algoritmo sin paralelizar en la GPU. Esta
+implementación deja de ser viable en seguida obteniendo resultados superiores al minutos con 1.000
+datos y 100 repeticiones. Los resultados obtenidos en la implementación A, que paraleliza los
+subconjuntos de elementos en cada fase, mejoran los tiempos de la implementación 0, aunque con
+10.000 elementos no los resultados dejan de ser óptimos. 
+
+La implementación B y C, que obtienen tiempos muy similares son las primeras que obtienen tiempos
+aceptables. Esta obtiene los mejores tiempos porque incluye
+una nueva paralelización que consiste en dividir la organización de cada subconjunto. Esta
+implementación sin embargo no ordena completamente el vector, ya que no existe comunicación entre
+los hilos que ordenan el mismo subconjunto de elementos. La implementación representa el mayor
+grado de paralelización ya que aparentemente no es posible dividir más el trabajo de cada hilo.
+
+La implementación D realiza las mejoras necesarias para que la implementación B ordene realmente
+los elementos. Esta implementación es aparentemente más lenta que la B sin embargo la diferencia de
+tiempos entre ellas disminuye al aumentar el número de elementos, llegando a conseguir mejores
+tiempos al ordenar vectores de un millón de elementos. Esto puede deberse a que en cada fase, la
+implementación D deja más ordenado el vector. 
+
+Otra observación que hay que hacer es que la relación entre el tiempo que tarda en acabar la
+implementación lineal y la D es menor cuanto más elementos tiene el vector. 
+
+Las últimas implementaciones, E y F obtienen también tiempos similares entre ellos. Estas realizan
+copias a memoria de cache para intentar mejorar los tiempos de ejecución. Sin embargo los tiempos
+no mejoran con respecto a las implementaciones anteriores. Esto posiblemente es debido a toda la
+lógica que añade la implementación al realizar la copia. Entre los detalles de la implementación
+hay que señalar que es necesario indicar en la implementación OpenCL la cantidad de memoria local
+que se va a necesitar y esto es uno de los problemas de estas implementaciones ya que cada thread
+dispone de una cantidad máxima de memoria que puede disponer para sus datos. De hecho la
+implementación no es capaz de ordenar más de un millón de elementos. 
+
+% indicar en trabajo futuro que los hilos ordenen 4 o 5 elementos independientemente de cuantos
+% tengan que manejar. 
+
+
+
+
+
+La tabla \refTab{TiemposGruposA} muestra los resultados de distintas ejecuciones de las diferentes
+implementaciones. Las implementaciones 0 y A muestran como al no estar paralelizado o tener una
+paralelización bastante pobre, los resultados enseguida se disparan. Por otro lado los tiempos
+nunca mejoran pero la relación entre el tiempo de ejecución lineal y el tiempo de ejecución
+paralela (Imp-D) es cada vez más pequeña. Hay que señalar que la implementación D consigue los
+mejores tiempos en la última ejecución. La Implementación E, que realiza copia en memoria local de
+los datos del vector, obtiene tiempos inferiores a la implementación D, esto se debe posiblemente
+a la complejidad de la lógica necesaria para controlar la copia local de los datos. 
+
+Los tiempos de la Implementación C no se han puesto por ser inferiores similares a la
+implementación B al igual que las implementaciones E y F. También indicar que la implementación E y
+F es necesario definir manualmente en la implementación OpenCL la cantidad de datos en local que va
+a haber. 
+
+
+
+
+
+\subsection{Numero de lecturas y escrituras}
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|l | c | c| c | c | c | c | }
+\hline
+\multicolumn{7}{|c|}{1000 x 1000 (Elementos x repeticiones) } \\
+\hline
+Incremento     & 929 & 505 & 209 & 109 & 41   & 19   \\
+\hline
+Hilos / grupo  &     1&    1 & 1    & 2    & 7    & 11 \\
+Grupos         & 929  & 505  & 209  & 109  & 41   & 19 \\
+Datos / hilo   & 1.07 & 1.98 & 4.48 & 4.58 & 3.48 & 4.78 \\
+Lecturas       & 0.11 & 1.4  & 6.2  & 9.7  & 17   & 19 \\
+Escritura      & 0.11 & 1.4  & 6.2  & 8.8  & 15   & 16 \\
+Pasadas        & 1    & 1    & 1    & 1.6  & 2.5  & 2.8\\
+\hline
+\hline
+\multicolumn{3}{|c|}{1000 x 1000} & ----- & \multicolumn{3}{c|}{10000 x 100}\\
+\hline
+Incremento     & 5   & 1     & ----- & 5    & 1   &  -----\\ 
+\hline
+Hilos / grupo  & 40  & 200   & ----- & 512  & 512  &  -----\\ 
+Grupos         & 5   & 1     & ----- & 5    & 1    &  -----\\ 
+Datos / hilo   & 5   & 5     & ----- & 3,9  & 19,5 &  -----\\ 
+Lecturas       & 32  & 43    & ----- & 128  & 150  &  -----\\ 
+Escritura      & 27  & 36    & ----- & 123  & 172  &  -----\\ 
+Pasadas        & 4.0 & 5.5   & ----- & 4,1  & 22,6 &  -----\\ 
+\hline
+\end{tabular}
+\caption{Número medio de lecturas, escrituras y pasadas hilo}
+\labelTab{Medias}
+\end{center}
+\end{table}
+
+En el apartado anterior se ha observado como realizar una copia local de los datos para realizar la
+ordenación no resulta efectiva. En este apartado se han analizado el número de lecturas,
+escrituras medias por hilo de la implementación D y los resultados se muestran en la
+\refTab{Medias}. 
+
+El número de pasadas indica la cantidad de veces que un algoritmo tiene que reordenar sus
+elementos. 
+
+Para 1.000 elementos, el número de escrituras aumenta alcanzando más de 30 lecturas y escrituras en
+la última fase o lo que es lo mismo, aproximadamente 8 lecturas y 7 escrituras por dato en la última
+fase. Aunque no se un dato muy bueno se compensa con las pocas lecturas /
+escrituras de las primeras fases del algoritmo. Este dato se debe a que cada vez hay más hilos por
+subconjunto y los subconjuntos son más grandes. El número medio total de lecturas y escrituras por
+pasada y dato es aproximadamente 4 que, no es un valor muy negativo. El número óptimo de
+lecturas y escrituras es aproximadamente 2. 
+
+Para 10.000 elementos, se puede observar como en las dos ultimas fases, mientras la media de datos
+por hilo no sea superior a 4, el número de pasadas se mantiene en 4, sin embargo cuando se llega al
+máximo de hilos por grupo de trabajo, 512, el número de pasadas que hay que realizar también
+aumenta, con estos datos se puede deducir que el número de pasadas está directamente relacionado
+con el número de datos que ordena cada hilo. También se puede observar que la relación entre el
+número de lecturas / escrituras por dato y el número de hilos es, en la última pasada, muy
+inferior a la fase anterior. Este resultado te hace planea la duda de cual es la cantidad óptima
+datos que cada hilo debe ordenar y cuantos hilos como máximo deben lanzarse por subconjunto de
+elementos en cada fase. En análisis de la siguiente sección terminará se analizarán la
+diferencia de tiempos cambiando estos datos.
+
+\subsection{Análisis de los tiempos por fases}
+
+% \begin{table}
+% 
+% \begin{tabular}{|l | c | c| c | c | c | c | }
+% \hline
+% \multicolumn{7}{|c|}{1000 x 1000 (Elementos x repeticiones) } \\
+% \hline
+% Incremento     & 929 & 505 & 209 & 109 & 41   & 19   \\
+% \hline
+% Hilos / grupo  &     1&    1 & 1    & 2    & 7    & 11 \\
+% Grupos         & 929  & 505  & 209  & 109  & 41   & 19 \\
+% Datos / hilo   & 1.07 & 1.98 & 4.48 & 4.58 & 3.48 & 4.78 \\
+% Lecturas       & 0.11 & 1.4  & 6.2  & 9.7  & 17   & 19 \\
+% Escritura      & 0.11 & 1.4  & 6.2  & 8.8  & 15   & 16 \\
+% Pasadas        & 1    & 1    & 1    & 1.6  & 2.5  & 2.8\\
+% \hline
+% \hline
+% \multicolumn{3}{|c|}{1000 x 1000} & ----- & \multicolumn{3}{c|}{10000 x 100}\\
+% \hline
+% Incremento     & 5   & 1     & ----- & 5    & 1   &  -----\\ 
+% \hline
+% Hilos / grupo  & 40  & 200   & ----- & 512  & 512  &  -----\\ 
+% Grupos         & 5   & 1     & ----- & 5    & 1    &  -----\\ 
+% Datos / hilo   & 5   & 5     & ----- & 3,9  & 19,5 &  -----\\ 
+% Lecturas       & 32  & 43    & ----- & 128  & 150  &  -----\\ 
+% Escritura      & 27  & 36    & ----- & 123  & 172  &  -----\\ 
+% Pasadas        & 4.0 & 5.5   & ----- & 4,1  & 22,6 &  -----\\ 
+% \hline
+% \end{tabular}
+% \caption{Tiempos de cada fase para un millón de elementos y 100 pasadas}
+% \labelTab{TiemposXFases}
+% \end{table}
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|l | c | c | c |}
+\hline
+\multicolumn{1}{|c}{Elementos}& \multicolumn{1}{c}{Repeticiones} & 
+\multicolumn{1}{c}{Max. Hilos} & \multicolumn{1}{c|}{Min Elementos}\\
+\multicolumn{1}{|c}{1.000.000}& \multicolumn{1}{c}{100} & 
+\multicolumn{1}{c}{512} & \multicolumn{1}{c|}{1}\\
+\hline
+Incr.  & Lineal & Imp B & Imp D \\
+\hline
+587521 & 1.11  & 5.03  & 5.98  \\
+260609 & 1.56  & 6.58  & 7.96  \\
+146305 & 1.84  & 7.15  & 8.53  \\
+64769  & 2.16  & 8.26  & 9.63  \\
+36289  & 2.60  & 8.24  & 9.53  \\
+16001  & 2.74  & 9.25  & 10.44 \\
+8929   & 3.13  & 8.74  & 9.95  \\
+3905   & 3.08  & 9.61  & 10.78 \\
+2161   & 3.02  & 9.21  & 10.43 \\
+929    & 3.18  & 9.90  & 11.24 \\
+505    & 3.41  & 9.57  & 16.60 \\
+209    & 3.71  & 6.10  & 11.48 \\
+109    & 3.38  & 3.99  & 8.63  \\
+41     & 7.61  & 5.36  & 8.45  \\
+19     & 4.25  & 4.36  & 8.70  \\
+5      & 3.77  & 20.97 & 11.66 \\
+1      & 3.94  & 43.67 & 14.70 \\
+\hline
+Total  & 56.29 & 177.23 & 176.93 \\
+\hline 
+\hline
+\multicolumn{1}{|c}{Elementos}& \multicolumn{1}{c}{Repeticiones} & 
+\multicolumn{1}{c}{Max. Hilos} & \multicolumn{1}{c|}{Min Elementos}\\
+\multicolumn{1}{|c}{1.000.000}& \multicolumn{1}{c}{100} & 
+\multicolumn{1}{c}{256} & \multicolumn{1}{c|}{2}\\
+\hline
+Incr.  & Lineal & Imp B & Imp D \\
+\hline
+587521 & 1.17  & 5.07  & 5.81   \\
+260609 & 1.57  & 6.56  & 7.98   \\
+146305 & 1.83  & 7.06  & 8.40   \\
+64769  & 2.20  & 8.46  & 9.73   \\
+36289  & 2.55  & 8.17  & 9.41   \\
+16001  & 2.79  & 9.37  & 10.41  \\
+8929   & 3.14  & 8.50  & 9.93   \\
+3905   & 3.09  & 9.82  & 10.87  \\
+2161   & 3.03  & 9.06  & 10.41  \\
+929    & 3.20  & 10.07 & 11.16  \\
+505    & 3.39  & 9.55  & 10.73  \\
+209    & 3.72  & 8.97  & 16.52  \\
+109    & 3.46  & 5.84  & 11.32  \\
+41     & 7.82  & 6.85  & 9.42   \\
+19     & 4.33  & 4.93  & 8.48   \\
+5      & 3.83  & 21.52 & 10.95  \\
+1      & 3.89  & 16.74 & 13.62  \\
+\hline
+Total  & 56.83 & 157.66& 177.36 \\
+\hline
+
+\end{tabular}
+\caption{Tiempo de ejecución por fases}
+\labelTab{FasesLineal}
+\end{center}
+\end{table}
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|l | c | c | c | c |}
+\hline
+\multicolumn{1}{|c}{Elementos}& \multicolumn{1}{c}{Repeticiones} & 
+\multicolumn{1}{c}{Max. Hilos} & \multicolumn{2}{c|}{Min. Elementos} \\
+\multicolumn{1}{|c}{500.000}& \multicolumn{1}{c}{100} & 
+\multicolumn{1}{c}{512} & \multicolumn{2}{c|}{5} \\
+\hline
+Incr.  & Lineal & Imp B & Imp D & Imp E    \\
+\hline 
+260609 & 0.60   & 2.34   & 2.81   & 7.46   \\
+146305 & 0.70   & 3.13   & 3.69   & 7.80   \\
+64769  & 0.95   & 3.82   & 4.46   & 8.42   \\
+36289  & 0.96   & 3.84   & 4.42   & 8.48   \\
+16001  & 1.26   & 4.45   & 4.99   & 8.99   \\
+8929   & 1.35   & 4.22   & 4.83   & 8.94   \\
+3905   & 1.44   & 4.82   & 5.36   & 9.43   \\
+2161   & 1.48   & 4.45   & 5.12   & 9.30   \\
+929    & 1.56   & 4.95   & 5.52   & 9.74   \\
+505    & 1.42   & 4.72   & 5.38   & 13.15  \\
+209    & 1.64   & 5.47   & 5.96   & 7.60   \\
+109    & 1.52   & 4.84   & 5.40   & 4.61   \\
+41     & 2.88   & 5.16   & 10.46  & 3.06   \\
+19     & 1.94   & 4.36   & 8.11   & 2.27   \\
+5      & 1.87   & 14.18  & 9.48   & 1.45   \\
+1      & 1.89   & 16.34  & 15.07  & 4.57   \\
+\hline
+Total  & 24.39 & 91.74   & 102.26 & 115.99 \\
+\hline
+\end{tabular}
+\caption{Tiempo de ejecución por fases}
+\labelTab{FasesLineal2}
+\end{center}
+\end{table}
+
+En la \refTab{FasesLineal} y la \refTab{FasesLineal2} se analizan los tiempos para cada una de
+las fases. Los parámetros que
+se comparan son el número de hilos máximos por subconjunto y el número mínimo de elementos que
+ordena cada hilo. Hay que señalar que si el número de elementos que tiene un
+subconjunto es inferior mínimo de datos por hilo, prevalece haber al menos un hilo por
+subconjunto de elementos. 
+
+Las pruebas se han realizado con dos configuraciones, la primera configuración se realiza con el
+mayor número de elementos posibles para la implementación D, un millón. Una segunda configuración se
+realiza con el mayor número posible para la implementación E, medio millón. 
+
+Las pruebas tienen dos parámetros, el número mínimo de datos por hilo y el número máximo de hilos
+por subconjunto. El primero afecta principalmente a las primeras fases, valores
+altos producen que estas fases tengan pocos hilos por subconjunto. Este valor deja de tener sentido
+cuando la relación entre el número de datos de un subconjunto y el número de hilos aumenta y es
+esta relación es la que indica cuantos datos va a ordenar cada hilo a partir de entonces. 
+
+Con los resultados obtenidos, se puede determinar que el número de datos mínimo de datos por hilo no
+afecta a la velocidad final mientras que no sea una cantidad muy grande.
+
+Se puede observar también como la implementación B ofrece valores más dispares como puede
+verse en las ejecuciones donde solo cambia el parámetro de número de datos mínimo por hilo.
+
+También puede observarse en los resultados obtenidos como los tiempos de
+ordenación de cada una de las fases son constantes para la implementación lineal y D, la
+implementación B pese a ser más rápida que la D, empeora sensiblemente en las últimas fases. Una de
+las causas puede ser el hecho de que los subconjuntos, después de cada fase en la
+implementación B, no están realmente ordenados. 
+
+Las ejecuciones en las que el parámetro máximo número de hilos por subconjunto empeoran el
+rendimiento en las últimas fases, en concreto con hasta 64 hilos por subconjunto. Con
+GPUs que dispongan más núcleos, este dato será posiblemente más decisivo. 
+
+Por último hay, la configuración con medio millón de datos, donde se puede ejecutar la
+implementación E, se puede observar como, al hacer una copia en cache de los datos, el rendimiento
+del algoritmo en las fases finales del algoritmo es mejor debido a que se producen un mayor
+número de lecturas y escrituras por dato. 
+
+ 
+
+
+ 
+% La 
+% efectiva. Este hecho hace pensar que el número de lecturas y escrituras no sea muy grande y, por
+% tanto, no merezca la pena copiar los datos a local. 
+% 
+% La \refTab{Medias} muestra como el número de accesos de lectura y escritura es cada vez mayor. En
+% estas fases. Este incremento está relacionado con las pasadas que hace cada hilo. Hay que
+% aclarar que por pasada se entiende al número de veces que ordena un hilo su subconjunto de
+% datos, un hilo vuelve a ordenar sus datos si se ha producido un cambio entre los extremos de los
+% datos que maneja cada hilo, al no encontrarse en la posición correcta. 
+
+\subsection{Tiempos en distintos equipos}
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|l | c | c | c |}
+\hline
+& \multicolumn{3}{|c|}{Implementación} \\
+\hline
+Equipo & Lineal   & B      & D     \\
+\hline 
+Equipo A & 4.05   & 11.59  & 13.24 \\
+Equipo B & 4.53   & 7.80   & 7.64  \\
+Equipo C & 3.92   & 5.61   & 3.78  \\
+\hline
+\end{tabular}
+\caption{Tiempo de ejecución en distintos equipos}
+\labelTab{equipos}
+\end{center}
+\end{table}
+
+Por últimos se han podido ejecutar tres implementaciones en tres equipos distintos, esto ha
+permitido comparar con dispositivos gráficos más potentes. Las pruebas se han limitado a las
+implementaciones Lineal, Shellsort B y Shellsort D. Las pruebas se han realizado con 400.000
+elementos y 20 repeticiones. El número máximo de hilos por subconjunto se ha establecido a 512 y
+cada hilo ordena al menos 5 elementos. los resultados se encuentran en la \refTab{equipos}. 
+
+La primera conclusión que puede obtenerse es que el algoritmo depende del número de núcleos que el
+dispositivo posea. El dispositivo gráfico del equipo B, sin ser más potente, posee el doble de
+núcleos y reduce a la mitad el tiempo de ejecución del algoritmo. El equipo C posee 5 veces más
+núcleos y reduce el tiempo de ejecución casi en una quinta parte. 
+
+El otro dato positivo que se puede observar es que en la ejecución de la implementación D en el
+equipo C mejora ligeramente el tiempo de la implementación lineal. 
+

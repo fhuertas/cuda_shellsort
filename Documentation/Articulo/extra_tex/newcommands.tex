@@ -1,0 +1,107 @@
+\newcommand{\labelEq}[1]{\label{eq:#1}}
+\newcommand{\labelFig}[1]{\label{fig:#1}}
+\newcommand{\labelTab}[1]{\label{tab:#1}}
+\newcommand{\labelSec}[1]{\label{sec:#1}}
+\newcommand{\refEq}[1]{Ecuación~\eqref{eq:#1}}
+\newcommand{\refFig}[1]{Fig.\ref{fig:#1}}
+\newcommand{\refTab}[1]{tabla~\ref{tab:#1}}
+\newcommand{\RefTab}[1]{Tabla~\ref{tab:#1}}
+\newcommand{\refSec}[1]{sección~\ref{sec:#1}}
+\newcommand{\RefSec}[1]{Sección~\ref{sec:#1}}
+\newcommand{\refApe}[1]{apéndice~\ref{sec:#1}}
+\newcommand{\RefApe}[1]{Apéndice~\ref{sec:#1}}
+\newcommand{\angl}[1]{{\em #1}}
+\newcommand{\cod}[1]{{\tt #1}}
+
+%% I have got rid of the .eps file
+%% extension in the filename, in order to allow PDFLATEX to
+%% import the PDF's, which I have also created and included
+%% in the zip file.
+%% I normally use this macro for this:
+%% \newFig{filename}{Caption}
+%% I use the <filename> as the label... it's easier to
+%% remember for me...
+
+
+
+
+
+\ifpdf
+\newcommand{\newFig}[2] {
+\begin{figure}[ht]
+\centering
+\includegraphics [width=0.40\textwidth] {Figs/pdf/#1}
+\caption {#2}
+\labelFig{#1}
+\end{figure}
+}
+
+\newcommand{\newFigWidth}[3] {
+\begin{figure}[ht]
+\centering
+\includegraphics [width=#1\textwidth] {Figs/pdf/#2}
+\caption {#3}
+\labelFig{#2}
+\end{figure}
+}
+
+
+\newcommand{\newFigTwoXTree}[8] {
+\begin{figure}[ht!]
+  \centering
+   %%----1x1----
+  \subfloat[]{
+        \labelFig{#3}         %% Etiqueta para la primera subfigura
+        \includegraphics[width=0.21\textwidth]{Figs/pdf/#3}}
+   %%----1x2----
+  \subfloat[]{
+        \labelFig{#4}         %% Etiqueta para la segunda subfigura
+        \includegraphics[width=0.21\textwidth]{Figs/pdf/#4}}\\[20pt]
+   %%----2x1----
+  \subfloat[]{
+        \labelFig{#5}         %% Etiqueta para la primera subfigura
+        \includegraphics[width=0.21\textwidth]{Figs/pdf/#5}}
+   %%----2x2----
+  \subfloat[]{
+        \labelFig{#6}         %% Etiqueta para la segunda subfigura
+        \includegraphics[width=0.21\textwidth]{Figs/pdf/#6}}\\[20pt]
+   %%----3x1----
+  \subfloat[]{
+        \labelFig{#7}         %% Etiqueta para la primera subfigura
+        \includegraphics[width=0.21\textwidth]{Figs/pdf/#7}}
+   %%----3x2----
+  \subfloat[]{
+        \labelFig{#8}         %% Etiqueta para la segunda subfigura
+        \includegraphics[width=0.21\textwidth]{Figs/pdf/#8}}
+  \labelFig{#1}                %% Etiqueta para la figura entera
+  \caption{#2}
+\end{figure}
+}
+
+
+
+
+
+
+
+\else
+\newcommand{\newFig}[2] {
+\begin{figure}[ht]
+\centering
+\includegraphics [width=0.40\textwidth] {Figs/eps/#1}
+\caption {#2}
+\labelFig{#1}
+\end{figure}
+}
+
+\newcommand{\newFigWidth}[3] {
+\begin{figure}[ht]
+\centering
+\includegraphics [width=#1\textwidth] {Figs/eps/#2}
+\caption {#3}
+\labelFig{#2}
+\end{figure}
+}
+\fi
+
+
